@@ -30,4 +30,6 @@ public:
 
     void close() override;
 
+    WAVReader& operator= (WAVReader& reader) = delete;
+
 };

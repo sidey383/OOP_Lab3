@@ -1,8 +1,6 @@
 #pragma once
 #include <vector>
 
-unsigned int dataToUnsignedInt(char data[4]);
-
 struct Header {
     char chunkId[4]; // "RIFF"
     unsigned int size; // size of file - 8 (byte)
@@ -23,12 +21,6 @@ struct FMTChunk {
     unsigned short bitsPerSample = 0;
 };
 
-enum class ChunkTypes {
-    FMT,
-    INFO,
-    DATA
-};
-
 struct SomeChunk {
     char* data;
     unsigned int size = 0;
@@ -38,16 +30,19 @@ struct SomeChunk {
         data = new char[size];
     }
 
-    ~SomeChunk() {
-        delete[] data;
-    }
-
 };
 
+struct {
+    char riff[4]{'R','I','F','F'};
+    char wave[4]{'W','A','V','E'};
+    char data[4]{'d','a','t','a'};
+    char fmt[4]{'f','m','t',' '};
+} chunkHeaders;
+
 struct WAVMetaData {
+    Header header;
     FMTChunk fmt;
     std::vector<SomeChunk*> otherChunks;
     unsigned int sampleCount = 0;
-    unsigned short riffSize = 0;
 };
 

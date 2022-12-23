@@ -6,54 +6,48 @@ bool compare4Str(char* str1, char* str2) {
     && str1[2] == str2[2] && str1[3] == str2[3];
 }
 
-static char riffStr[4]{'R','I','F','F'};
-static char waveStr[4]{'W','A','V','E'};
-static char dataStr[4]{'d','a','t','a'};
 
 WAVReader::WAVReader(std::ifstream &file) : file(file), pose(0) {
     try {
-        Header header;
-        if ( file.read((char *) &header, sizeof(Header)).gcount() < sizeof(Header)) {
-            throw new std::invalid_argument("File too small");
+        if ( file.read((char *) &data.header, sizeof(Header)).gcount() < sizeof(Header)) {
+            throw std::invalid_argument("File too small");
         }
-        if (!compare4Str((char *) header.chunkId, riffStr)) {
-            throw new std::invalid_argument("Wrong fmt id");
+        if (!compare4Str((char *) data.header.chunkId, chunkHeaders.riff)) {
+            throw std::invalid_argument("Wrong fmt id");
         }
-        if (!compare4Str((char *) header.format, waveStr)) {
-            throw new std::invalid_argument("Wrong file format id");
+        if (!compare4Str((char *) data.header.format, chunkHeaders.wave)) {
+            throw std::invalid_argument("Wrong file format id");
         }
-        data.riffSize = header.size;
         ChunkHeader chunkHeader;
         do {
-            if( file.read((char *) &chunkHeader, sizeof(ChunkHeader)).gcount() < sizeof(ChunkHeader)) {
+            if( file.read((char *) &chunkHeader, sizeof(ChunkHeader)).gcount() < sizeof(ChunkHeader))
                 throw new std::invalid_argument("File too small");
-            }
-            if (compare4Str(chunkHeader.id, dataStr))
+
+            if (compare4Str(chunkHeader.id, chunkHeaders.data))
                 break;
             if (readFMT(chunkHeader, file))
                 continue;
+
             readOther(chunkHeader, file);
         } while (file.peek() != EOF);
 
-        if (!compare4Str(chunkHeader.id, dataStr)) {
-            throw new std::invalid_argument("No sound data in file");
+        if (!compare4Str(chunkHeader.id, chunkHeaders.data)) {
+            throw std::invalid_argument("No sound data in file");
         }
         if (data.fmt.audioFormat == 0) {
-            throw new std::invalid_argument("No fmt chunk in file");
+            throw std::invalid_argument("No fmt chunk in file");
         }
 
         data.sampleCount = chunkHeader.size / data.fmt.blockAlign;
     } catch (std::invalid_argument &e) {
         throw e;
     } catch (...) {
-        throw new std::exception();
+        throw std::exception();
     }
 }
 
-static char fmtStr[4]{'f','m','t',' '};
-
 bool WAVReader::readFMT(ChunkHeader chunkHeader, std::ifstream &file) {
-    if (compare4Str(chunkHeader.id, fmtStr)) {
+    if (compare4Str(chunkHeader.id, chunkHeaders.fmt)) {
         if (chunkHeader.size != 16) {
             throw new std::invalid_argument("wrong fmt fmt size");
         }
@@ -62,8 +56,6 @@ bool WAVReader::readFMT(ChunkHeader chunkHeader, std::ifstream &file) {
     }
     return false;
 }
-
-static char listStr[4]{'L','I','S','T'};
 
 bool WAVReader::readOther(ChunkHeader chunkHeader, std::ifstream &file) {
     SomeChunk* chunk = new SomeChunk(chunkHeader ,chunkHeader.size);
@@ -77,7 +69,9 @@ unsigned int WAVReader::getPose() {
 }
 
 unsigned int WAVReader::readSample(void *buff, size_t count) {
-    return file.read((char*)buff, count * data.fmt.blockAlign).gcount();
+    unsigned int read = file.read((char*)buff, count * data.fmt.blockAlign).gcount();
+    pose += read / data.fmt.blockAlign;
+    return read;
 }
 
 void WAVReader::skip(size_t count) {
