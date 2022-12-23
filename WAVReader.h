@@ -18,9 +18,9 @@ public:
 
     ~WAVReader();
 
-    unsigned int readSample(void* buff, size_t count) override;
+    unsigned int readSample(void* buff, unsigned int count) override;
 
-    void skip(size_t count) override;
+    void skip(unsigned int count) override;
 
     WAVMetaData getInfo() override;
 

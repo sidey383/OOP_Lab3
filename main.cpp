@@ -10,10 +10,11 @@ int main() {
     if (!input.is_open() || !output.is_open()) {
         return 1;
     }
-    WAVReader reader(input);
-    WAVWriter writer( reader ,output);
-    writer.write();
-    reader.close();
-    writer.close();
+    WAVChannel* reader = new WAVReader(input);
+    reader = getMuteChannel(reader, 10, 50);
+    WAVWriter* writer = new WAVWriter( reader ,output);
+    writer->write();
+    reader->close();
+    writer->close();
     return 0;
 }

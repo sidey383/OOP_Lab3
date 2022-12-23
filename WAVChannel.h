@@ -1,8 +1,7 @@
 #pragma once
-
 #include <string>
 #include "stdlib.h"
-#include "WAVStructs.h"
+#include "WAVMetaData.h"
 
 
 class WAVChannel {
@@ -24,7 +23,7 @@ public:
 
     virtual void close() = 0;
 
-    ~WAVChannel() = default;
+    virtual ~WAVChannel() = default;
 
     WAVChannel& operator= (WAVChannel& reader) = delete;
 
@@ -32,16 +31,8 @@ public:
 
 class WAVMute : public WAVChannel {};
 
-void getMuteChannel(WAVChannel& result ,WAVChannel& channel, unsigned long timeStart, unsigned long timeStop);
+WAVMute* getMuteChannel(WAVChannel* channel, unsigned long timeStart, unsigned long timeStop);
 
-class WAVMix : public WAVChannel {};
+class WAVMixer : public WAVChannel {};
 
-WAVMute& getMixerChannel(WAVChannel& first, WAVChannel& second, unsigned long timeStart);
-
-class NotSupportedException : public std::exception {
-
-    const char * what() const noexcept override {
-        return "This functionality is not supported";
-    }
-
-};
+WAVMixer& getMixerChannel(WAVChannel& first, WAVChannel& second, unsigned long timeStart);

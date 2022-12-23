@@ -1,21 +1,20 @@
 #include "WAVWriter.h"
 
 void WAVWriter::write() {
-    WAVMetaData data = channel.getInfo();
-    stream.write((char*)&data.header, sizeof(Header));
-    ChunkHeader fmtHeader{{'f', 'm','t',' '}, 16};
-    stream.write((char*)&fmtHeader, sizeof(ChunkHeader));
-    stream.write((char*)&data.fmt, sizeof(FMTChunk));
-    for (SomeChunk* chunk : data.otherChunks) {
-        stream.write((char*)&chunk->header, sizeof(ChunkHeader));
-        stream.write(chunk->data, chunk->size);
+    WAVMetaData data = channel->getInfo();
+    FileHeader header = data.getFileHeader();
+    stream.write((char*)&header, sizeof(FileHeader));
+    for (SomeChunk*& chunk : data.getChunks()) {
+        char* header = (char*)chunk->getHeader();
+        stream.write(header, sizeof(ChunkHeader));
+        stream.write(chunk->getData(), chunk->getDataSize());
     }
-    ChunkHeader dataHeader{{'d', 'a','t','a'}, data.sampleCount * data.fmt.blockAlign};
+    ChunkHeader dataHeader{{'d', 'a', 't', 'a'}, data.getDataSize()};
     stream.write((char*)&dataHeader, sizeof(ChunkHeader));
     char buffer[2048];
-    unsigned int toRead = 2048 / data.fmt.blockAlign;
+    unsigned int toRead = 2048 / data.getBlockAlign();
     unsigned int read;
-    while( (read = channel.readSample(buffer, toRead)) > 0) {
+    while( (read = channel->readSample(buffer, toRead)) > 0) {
         stream.write(buffer, read);
     }
 }

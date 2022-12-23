@@ -3,10 +3,10 @@
 #include <fstream>
 
 class WAVWriter {
-    WAVChannel& channel;
+    WAVChannel* channel;
     std::ofstream& stream;
 public:
-    WAVWriter(WAVChannel& channel, std::ofstream& stream) : channel(channel), stream(stream) {}
+    WAVWriter(WAVChannel* channel, std::ofstream& stream) : channel(channel), stream(stream) {}
 
     void write();
 

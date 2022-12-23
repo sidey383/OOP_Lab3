@@ -1,44 +1,39 @@
 #include "WAVReader.h"
 #include "stdexcept"
 
-bool compare4Str(char* str1, char* str2) {
-    return str1[0] == str2[0] && str1[1] == str2[1]
-    && str1[2] == str2[2] && str1[3] == str2[3];
-}
-
 
 WAVReader::WAVReader(std::ifstream &file) : file(file), pose(0) {
     try {
-        if ( file.read((char *) &data.header, sizeof(Header)).gcount() < sizeof(Header)) {
+        FileHeader fileHeader{};
+        if (file.read((char *) &fileHeader, sizeof(FileHeader)).gcount() < sizeof(FileHeader)) {
             throw std::invalid_argument("File too small");
         }
-        if (!compare4Str((char *) data.header.chunkId, chunkHeaders.riff)) {
-            throw std::invalid_argument("Wrong fmt id");
-        }
-        if (!compare4Str((char *) data.header.format, chunkHeaders.wave)) {
-            throw std::invalid_argument("Wrong file format id");
-        }
-        ChunkHeader chunkHeader;
+        data = WAVMetaData(fileHeader);
+
+        ChunkHeader chunkHeader{};
+        bool findData = false;
+
         do {
-            if( file.read((char *) &chunkHeader, sizeof(ChunkHeader)).gcount() < sizeof(ChunkHeader))
-                throw new std::invalid_argument("File too small");
-
-            if (compare4Str(chunkHeader.id, chunkHeaders.data))
+            if (file.read((char *) &chunkHeader, sizeof(ChunkHeader)).gcount() < sizeof(ChunkHeader)) {
+                throw std::invalid_argument("File too small");
+            }
+            SomeChunk* chunk = data.createChunk(chunkHeader);
+            if (chunk == nullptr) {
+                findData = true;
                 break;
-            if (readFMT(chunkHeader, file))
-                continue;
-
-            readOther(chunkHeader, file);
+            }
+            char* chunkData = chunk->getData();
+            if (file.read(chunkData, chunk->getDataSize()).gcount() < chunk->getDataSize()) {
+                throw std::invalid_argument("File too small");
+            }
         } while (file.peek() != EOF);
 
-        if (!compare4Str(chunkHeader.id, chunkHeaders.data)) {
-            throw std::invalid_argument("No sound data in file");
+        if (!findData) {
+            throw std::invalid_argument("No data in file");
         }
-        if (data.fmt.audioFormat == 0) {
+        if (!data.isCorrect()) {
             throw std::invalid_argument("No fmt chunk in file");
         }
-
-        data.sampleCount = chunkHeader.size / data.fmt.blockAlign;
     } catch (std::invalid_argument &e) {
         throw e;
     } catch (...) {
@@ -46,36 +41,18 @@ WAVReader::WAVReader(std::ifstream &file) : file(file), pose(0) {
     }
 }
 
-bool WAVReader::readFMT(ChunkHeader chunkHeader, std::ifstream &file) {
-    if (compare4Str(chunkHeader.id, chunkHeaders.fmt)) {
-        if (chunkHeader.size != 16) {
-            throw new std::invalid_argument("wrong fmt fmt size");
-        }
-        file.read((char*)&data.fmt, chunkHeader.size);
-        return true;
-    }
-    return false;
-}
-
-bool WAVReader::readOther(ChunkHeader chunkHeader, std::ifstream &file) {
-    SomeChunk* chunk = new SomeChunk(chunkHeader ,chunkHeader.size);
-    file.read(chunk->data, chunkHeader.size);
-    data.otherChunks.push_back(chunk);
-    return false;
-}
-
 unsigned int WAVReader::getPose() {
     return pose;
 }
 
-unsigned int WAVReader::readSample(void *buff, size_t count) {
-    unsigned int read = file.read((char*)buff, count * data.fmt.blockAlign).gcount();
-    pose += read / data.fmt.blockAlign;
+unsigned int WAVReader::readSample(void *buff, unsigned int count) {
+    unsigned int read = file.read((char*)buff, count * data.getBlockAlign()).gcount();
+    pose += read / data.getBlockAlign();
     return read;
 }
 
-void WAVReader::skip(size_t count) {
-    file.ignore(count * data.fmt.blockAlign);
+void WAVReader::skip(unsigned int  count) {
+    file.ignore(count * data.getBlockAlign());
 }
 
 bool WAVReader::isEnd() {
@@ -90,9 +67,4 @@ void WAVReader::close() {
     file.close();
 }
 
-WAVReader::~WAVReader() {
-    for (SomeChunk* chunk : data.otherChunks) {
-        delete[] chunk;
-    }
-    data.otherChunks.clear();
-}
+WAVReader::~WAVReader() {}
