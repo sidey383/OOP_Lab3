@@ -59,7 +59,7 @@ bool WAVReader::isEnd() {
     return file.peek() == EOF || !file.is_open();
 }
 
-WAVMetaData WAVReader::getInfo() {
+WAVMetaData& WAVReader::getInfo() {
     return data;
 }
 

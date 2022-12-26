@@ -1,5 +1,5 @@
 #pragma once
-#include "WAVChannel.h"
+#include "../WAVChannel.h"
 #include "fstream"
 
 class WAVReader : public WAVChannel {
@@ -8,21 +8,17 @@ private:
     std::ifstream& file;
     unsigned int pose;
 
-    bool readFMT(ChunkHeader header, std::ifstream &file);
-
-    bool readOther(ChunkHeader header, std::ifstream &file);
-
 public:
 
     explicit WAVReader(std::ifstream& file);
 
-    ~WAVReader();
+    ~WAVReader() override;
 
     unsigned int readSample(void* buff, unsigned int count) override;
 
     void skip(unsigned int count) override;
 
-    WAVMetaData getInfo() override;
+    WAVMetaData& getInfo() override;
 
     unsigned int getPose() override;
 
