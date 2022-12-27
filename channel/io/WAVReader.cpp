@@ -17,7 +17,7 @@ WAVReader::WAVReader(std::ifstream &file) : file(file), pose(0) {
             if (file.read((char *) &chunkHeader, sizeof(ChunkHeader)).gcount() < sizeof(ChunkHeader)) {
                 throw std::invalid_argument("File too small");
             }
-            SomeChunk* chunk = data.createChunk(chunkHeader);
+            FileChunk* chunk = data.createChunk(chunkHeader);
             if (chunk == nullptr) {
                 findData = true;
                 break;
@@ -48,7 +48,7 @@ unsigned int WAVReader::getPose() {
 unsigned int WAVReader::readSample(void *buff, unsigned int count) {
     unsigned int read = file.read((char*)buff, count * data.getBlockAlign()).gcount();
     pose += read / data.getBlockAlign();
-    return read;
+    return read / data.getBlockAlign();
 }
 
 void WAVReader::skip(unsigned int  count) {

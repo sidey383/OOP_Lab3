@@ -2,24 +2,49 @@
 #include <stdexcept>
 #include <cstring>
 
-WAVClip16_1::WAVClip16_1(WAVChannel *channel, unsigned int start, unsigned int stop) : input(channel),
-                                                                                       start(start), stop(stop){
+WAVClip16_1::WAVClip16_1(WAVChannel *channel, unsigned int start, unsigned int stop) : input(channel){
     WAVMetaData metaData = channel->getInfo();
-    if (info.getNumChannel() != 1)
+    if (metaData.getNumChannel() != 1)
         throw std::invalid_argument("invalid channel count for WAVMute16_1");
-    if (info.getBlockAlign() != 2)
+    if (metaData.getBlockAlign() != 2)
         throw std::invalid_argument("invalid sample size for WAVMute16_1");
+    start = start * metaData.getSampleRate();
+    stop = stop * metaData.getSampleRate();
+    unsigned int sampleCount = metaData.getDataSize() / metaData.getBlockAlign();
+    start = std::max(start, (unsigned int)0);
+    stop = std::min(stop, sampleCount);
+    if(stop < start) {
+        stop = 0;
+        start = 0;
+    }
+    FileHeader header = metaData.getFileHeader();
+    header.size = header.size - metaData.getDataSize() + (stop - start) * metaData.getSampleRate();
+    info = WAVMetaData(header);
+    for (FileChunk *chunk: metaData.getChunks()) {
+        FileChunk* newChunk = info.createChunk(*chunk->getHeader());
+        memcpy(newChunk->getData(), chunk->getData(), chunk->getDataSize());
+    }
+    ChunkHeader dataHeader = metaData.getDataHeader();
+    dataHeader.size = (stop - start) * metaData.getBlockAlign();
+    info.createChunk(dataHeader);
+    if (!info.isCorrect()) {
+        throw std::logic_error("WAVMetaData create exception");
+    }
+    channel->skip(start);
+    this->sampleCount = stop - start;
 }
 
 unsigned int WAVClip16_1::readSample(void *buff, unsigned int count) {
     auto *data = reinterpret_cast<short *>(buff);
-    unsigned int part_start = input->getPose();
     unsigned int size = input->readSample(data, count);
-    unsigned int localStart = std::max(start * info.getSampleRate(), part_start);
-    unsigned int localEnd = std::min(stop * info.getSampleRate(), part_start + count);
-    if (localStart <= localEnd) {
-        memset(data + (localStart - part_start), 0, (localEnd - localStart) * sizeof(short));
+    if (pose + size >= sampleCount) {
+        if (pose >= sampleCount) {
+            return 0;
+        } else {
+            size = sampleCount - pose;
+        }
     }
+    pose += size;
     return size;
 }
 
@@ -32,11 +57,11 @@ WAVMetaData &WAVClip16_1::getInfo() {
 }
 
 unsigned int WAVClip16_1::getPose() {
-    return input->getPose();
+    return pose;
 }
 
 bool WAVClip16_1::isEnd() {
-    return input->isEnd();
+    return input->isEnd() || pose >= sampleCount;
 }
 
 void WAVClip16_1::close() {

@@ -19,19 +19,19 @@ baseInput (base), additionalInput(additional), start(start), info(base->getInfo(
 unsigned int WAVMixer16_1::readSample(void *buff, unsigned int count) {
     auto *data = reinterpret_cast<short *>(buff);
     unsigned int part_start = baseInput->getPose();
-    unsigned int size = baseInput->readSample(data, count) / info.getBlockAlign();
+    unsigned int size = baseInput->readSample(data, count);
     if (part_start + size > start * info.getSampleRate()) {
         unsigned int additional_part_start =
                 (start * info.getSampleRate()) < part_start ? 0 : start * info.getSampleRate() - part_start;
         unsigned int additionalSize = size - additional_part_start;
         short additionalData[additionalSize];
-        if ((additionalSize = additionalInput->readSample(additionalData, additionalSize * info.getSampleRate())) > 0) {
+        if ((additionalSize = additionalInput->readSample(additionalData, additionalSize)) > 0) {
             for (unsigned int i = 0; i < additionalSize; i++) {
-                data[part_start + i] = data[part_start + i] / 2 + additionalData[i] / 2;
+                data[additional_part_start + i] = data[additional_part_start + i] / 2 + additionalData[i] / 2;
             }
         }
     }
-    return size * info.getBlockAlign();
+    return size;
 }
 
 void WAVMixer16_1::skip(unsigned int count) {

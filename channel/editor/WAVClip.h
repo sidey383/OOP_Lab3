@@ -3,9 +3,9 @@
 
 class WAVClip16_1 : public WAVClip {
     WAVMetaData info;
-    unsigned int start;
-    unsigned int stop;
+    unsigned int sampleCount = 0;
     WAVChannel* input;
+    unsigned int pose = 0;
 public:
 
     WAVClip16_1(WAVChannel *channel, unsigned int start, unsigned int sto);

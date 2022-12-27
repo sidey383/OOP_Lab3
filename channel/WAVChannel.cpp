@@ -2,6 +2,7 @@
 #include "stdexcept"
 #include "editor/WAVMute.h"
 #include "editor/WAVMixer.h"
+#include "editor/WAVClip.h"
 #include "io/WAVWriter.h"
 #include "io/WAVReader.h"
 
@@ -32,5 +33,9 @@ WAVMixer* getMixerChannel(WAVChannel* first, WAVChannel* second, unsigned long t
 }
 
 WAVClip* getClipChannel(WAVChannel* channel, unsigned long timeStart, unsigned long timeStop) {
-
+    WAVMetaData data = channel->getInfo();
+    if (data.getNumChannel() == 1 && data.getBlockAlign() == 2) {
+        return new WAVClip16_1(channel, timeStart, timeStop);
+    }
+    throw NotSupportedException();
 }

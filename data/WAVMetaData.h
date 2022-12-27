@@ -20,7 +20,7 @@ struct ChunkHeader {
     unsigned int size;
 };
 
-class SomeChunk {
+class FileChunk {
 
 public:
 
@@ -32,9 +32,9 @@ public:
 
     virtual ChunkHeader* getHeader() = 0;
 
-    virtual ~SomeChunk() = default;
+    virtual ~FileChunk() = default;
 
-    SomeChunk& operator= (const SomeChunk& obj) = default;
+    FileChunk& operator= (const FileChunk& obj) = default;
 
 };
 
@@ -42,7 +42,7 @@ enum class ChunkType {
     RIFF, WAVE, DATA, FMT, OTHER
 };
 
-class FMTChunk : public SomeChunk {
+class FMTChunk : public FileChunk {
     ChunkHeader* header;
 public:
     struct FMTChunkData {
@@ -70,7 +70,7 @@ public:
 
 };
 
-class UnknownChunk : public SomeChunk {
+class UnknownChunk : public FileChunk {
     ChunkHeader* header;
     char *data;
 public:
@@ -104,7 +104,7 @@ private:
 
     FileHeader fileHeader{};
     FMTChunk *fmt = nullptr;
-    std::vector<SomeChunk *> chunks;
+    std::vector<FileChunk *> chunks;
     ChunkHeader dataHeader{{'d', 'a', 't', 'a'}, 0};
 
 public:
@@ -131,9 +131,11 @@ public:
 
     unsigned int getDataSize();
 
-    SomeChunk *createChunk(ChunkHeader chunkHeader);
+    ChunkHeader getDataHeader();
 
-    std::vector<SomeChunk*> getChunks();
+    FileChunk *createChunk(ChunkHeader chunkHeader);
+
+    std::vector<FileChunk*> getChunks();
 
     bool isCorrect();
 

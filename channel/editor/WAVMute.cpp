@@ -12,11 +12,11 @@ WAVMute16_1::WAVMute16_1(WAVChannel *channel, unsigned int start, unsigned int s
 }
 
 unsigned int WAVMute16_1::readSample(void *buff, unsigned int count) {
-    auto *data = reinterpret_cast<short *>(buff);
     unsigned int part_start = inputChannel->getPose();
-    unsigned int size = inputChannel->readSample(data, count);
+    unsigned int size = inputChannel->readSample(buff, count);
     unsigned int localStart = std::max(start * info.getSampleRate(), part_start);
     unsigned int localEnd = std::min(end * info.getSampleRate(), part_start + count);
+    short *data = reinterpret_cast<short *>(buff);
     if (localStart <= localEnd) {
         memset(data + (localStart - part_start), 0, (localEnd - localStart) * sizeof(short));
     }

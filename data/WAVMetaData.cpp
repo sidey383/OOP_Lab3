@@ -31,7 +31,7 @@ WAVMetaData::WAVMetaData(FileHeader &header) : fileHeader(header) {
 }
 
 WAVMetaData::WAVMetaData(const WAVMetaData &origin) : fileHeader(origin.fileHeader), dataHeader(origin.dataHeader) {
-    for (SomeChunk* chunk : origin.chunks) {
+    for (FileChunk* chunk : origin.chunks) {
         ChunkType type = getType(*chunk->getHeader());
         if (type == ChunkType::FMT) {
             fmt = new FMTChunk(*(FMTChunk*)chunk);
@@ -45,14 +45,14 @@ WAVMetaData::WAVMetaData(const WAVMetaData &origin) : fileHeader(origin.fileHead
 WAVMetaData &WAVMetaData::operator=(const WAVMetaData &origin) {
     if (&origin == this)
         return *this;
-    for (SomeChunk *&chunk: chunks) {
+    for (FileChunk *&chunk: chunks) {
         delete chunk;
     }
     chunks.clear();
     fmt = nullptr;
     fileHeader = origin.fileHeader;
     dataHeader = origin.dataHeader;
-    for (SomeChunk*& chunk : chunks) {
+    for (FileChunk*& chunk : chunks) {
         ChunkType type = getType(*chunk->getHeader());
         if (type == ChunkType::FMT) {
             fmt = new FMTChunk(*(FMTChunk*)chunk);
@@ -61,18 +61,28 @@ WAVMetaData &WAVMetaData::operator=(const WAVMetaData &origin) {
             chunks.push_back(new UnknownChunk(*(UnknownChunk*)chunk));
         }
     }
+    return *this;
 }
 
-SomeChunk *WAVMetaData::createChunk(ChunkHeader chunkHeader) {
+FileChunk *WAVMetaData::createChunk(ChunkHeader chunkHeader) {
     ChunkType type = getType(chunkHeader);
-    SomeChunk *chunk;
+    FileChunk *chunk;
     switch (type) {
         case ChunkType::FMT:
+            if (fmt != nullptr) {
+                for(auto iter = chunks.begin(); iter != chunks.end(); ++iter )
+                {
+                    if(getType(*(*iter)->getHeader()) == ChunkType::FMT){
+                        delete fmt;
+                        chunks.erase( iter );
+                    }
+                }
+            }
             fmt = new FMTChunk(chunkHeader);
             chunk = fmt;
             break;
         case ChunkType::DATA:
-            dataHeader= chunkHeader;
+            dataHeader = chunkHeader;
             return nullptr;
         default:
             chunk = new UnknownChunk(chunkHeader);
@@ -81,7 +91,7 @@ SomeChunk *WAVMetaData::createChunk(ChunkHeader chunkHeader) {
     return chunk;
 }
 
-std::vector<SomeChunk *> WAVMetaData::getChunks() {
+std::vector<FileChunk *> WAVMetaData::getChunks() {
     return chunks;
 }
 
@@ -97,7 +107,7 @@ bool WAVMetaData::isSimilar(WAVMetaData &metaData)  {
 }
 
 WAVMetaData::~WAVMetaData() {
-    for (SomeChunk *&chunk: chunks) {
+    for (FileChunk *&chunk: chunks) {
         delete chunk;
     }
 }
@@ -133,4 +143,8 @@ FileHeader WAVMetaData::getFileHeader() {
 
 unsigned int WAVMetaData::getDataSize() {
     return dataHeader.size;
+}
+
+ChunkHeader WAVMetaData::getDataHeader() {
+    return dataHeader;
 }
