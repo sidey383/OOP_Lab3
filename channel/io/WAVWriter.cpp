@@ -1,5 +1,5 @@
 #include "WAVWriter.h"
-#define BUFFER_SIZE 8192
+#define BUFFER_SIZE 262144
 
 WAVWriterDefault::WAVWriterDefault(WAVChannel *channel, std::ofstream &stream) : channel(channel), stream(stream) {}
 

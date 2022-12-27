@@ -10,9 +10,8 @@ WAVClip16_1::WAVClip16_1(WAVChannel *channel, unsigned int start, unsigned int s
         throw std::invalid_argument("invalid sample size for WAVMute16_1");
     start = start * metaData.getSampleRate();
     stop = stop * metaData.getSampleRate();
-    unsigned int sampleCount = metaData.getDataSize() / metaData.getBlockAlign();
     start = std::max(start, (unsigned int)0);
-    stop = std::min(stop, sampleCount);
+    stop = std::min(stop, metaData.getDataSize() / metaData.getBlockAlign());
     if(stop < start) {
         stop = 0;
         start = 0;
@@ -50,6 +49,7 @@ unsigned int WAVClip16_1::readSample(void *buff, unsigned int count) {
 
 void WAVClip16_1::skip(unsigned int count) {
     input->skip(count);
+    pose += count;
 }
 
 WAVMetaData &WAVClip16_1::getInfo() {

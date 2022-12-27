@@ -5,15 +5,16 @@ ConfigParser::ConfigParser(std::string configFileName, std::string outputFile, s
         config(configFileName) , inputFiles(inputFiles), outputFile(outputFile) {
     if (!this->config.is_open())
         throw std::exception();
-    if (inputFiles.size() == 0)
+    if (inputFiles.empty())
         throw std::exception();
-    std::ifstream inputFile(inputFiles[0], std::ios::binary);
-    if (!inputFile.is_open())
-        throw std::exception();
-    editor = new SoundEditor(inputFile);
 }
 
 void ConfigParser::apply() {
+    std::ifstream inputFile(inputFiles[0], std::ios::binary);
+    std::vector<std::ifstream*> files;
+    if (!inputFile.is_open())
+        throw std::exception();
+    editor = new SoundEditor(inputFile);
     std::string string;
     while(std::getline(config, string)) {
         if (string[0] == '#')
@@ -38,12 +39,13 @@ void ConfigParser::apply() {
                 throw std::exception();
             }
             channelS.erase(0, 1);
-            int channelNumber = std::stoi(channelS);
+            int channelNumber = std::stoi(channelS) - 1;
             int start = std::stoi(startS);
-            if (channelNumber < inputFiles.size())
+            if (channelNumber >= inputFiles.size())
                 throw std::exception();
-            std::ifstream file(inputFiles[channelNumber], std::ios::binary);
-            editor->mix(file, start);
+            std::ifstream* file = new std::ifstream(inputFiles[channelNumber], std::ios::binary);
+            files.push_back(file);
+            editor->mix(*file, start);
             continue;
         }
         if(param == "clip") {
@@ -61,6 +63,9 @@ void ConfigParser::apply() {
     if (!output.is_open())
         throw std::exception();
     editor->write(output);
+    for(std::ifstream*& file : files) {
+        delete file;
+    }
 }
 
 std::string ConfigParser::getConfigLore() {

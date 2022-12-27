@@ -34,6 +34,9 @@ WAVReader::WAVReader(std::ifstream &file) : file(file), pose(0) {
         if (!data.isCorrect()) {
             throw std::invalid_argument("No fmt chunk in file");
         }
+        if(isEnd()) {
+            throw std::exception();
+        }
     } catch (std::invalid_argument &e) {
         throw e;
     } catch (...) {
@@ -46,17 +49,28 @@ unsigned int WAVReader::getPose() {
 }
 
 unsigned int WAVReader::readSample(void *buff, unsigned int count) {
-    unsigned int read = file.read((char*)buff, count * data.getBlockAlign()).gcount();
+    if (isEnd())
+        return 0;
+    file.read((char*)buff, count * data.getBlockAlign());
+    if (!file.good()) {
+        return 0;
+    }
+    unsigned int read = file.gcount();
     pose += read / data.getBlockAlign();
     return read / data.getBlockAlign();
 }
 
 void WAVReader::skip(unsigned int  count) {
-    file.ignore(count * data.getBlockAlign());
+    file.seekg(count * data.getBlockAlign(), std::ios::cur);
+    pose += count;
 }
 
 bool WAVReader::isEnd() {
-    return file.peek() == EOF || !file.is_open();
+    if(!file.is_open())
+        return true;
+    if(file.peek() == EOF)
+        return true;
+    return false;
 }
 
 WAVMetaData& WAVReader::getInfo() {

@@ -8,7 +8,7 @@ class WAVMute16_1 : public WAVMute {
     WAVChannel* inputChannel;
 public:
 
-    WAVMute16_1(WAVChannel* channel, unsigned int start, unsigned int stop);
+    WAVMute16_1(WAVChannel* channel, unsigned int start, unsigned int end);
 
     unsigned int readSample(void* buff, unsigned int count) override;
 

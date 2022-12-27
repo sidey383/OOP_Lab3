@@ -3,7 +3,7 @@
 
 
 WAVMixer16_1::WAVMixer16_1(WAVChannel* base,WAVChannel *additional,unsigned int start) :
-baseInput (base), additionalInput(additional), start(start), info(base->getInfo()) {
+baseInput (base), additionalInput(additional), info(base->getInfo()) {
     if (info.getNumChannel() != 1)
         throw std::invalid_argument("invalid channel count for WAVMixer16_1");
     if (info.getBlockAlign() != 2)
@@ -14,15 +14,16 @@ baseInput (base), additionalInput(additional), start(start), info(base->getInfo(
     if (!info.isSimilar(additionalMetadata)) {
         throw std::invalid_argument("Different sound formats");
     }
+    this->start = start * base->getInfo().getSampleRate();
 }
 
 unsigned int WAVMixer16_1::readSample(void *buff, unsigned int count) {
     auto *data = reinterpret_cast<short *>(buff);
     unsigned int part_start = baseInput->getPose();
     unsigned int size = baseInput->readSample(data, count);
-    if (part_start + size > start * info.getSampleRate()) {
+    if (part_start + size > start) {
         unsigned int additional_part_start =
-                (start * info.getSampleRate()) < part_start ? 0 : start * info.getSampleRate() - part_start;
+                (start) < part_start ? 0 : start - part_start;
         unsigned int additionalSize = size - additional_part_start;
         short additionalData[additionalSize];
         if ((additionalSize = additionalInput->readSample(additionalData, additionalSize)) > 0) {
