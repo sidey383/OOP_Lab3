@@ -1,13 +1,15 @@
 #include "WAVClip.h"
-#include <stdexcept>
 #include <cstring>
+#include "../../WAVexcepiont.h"
 
 WAVClip16_1::WAVClip16_1(WAVChannel *channel, unsigned int start, unsigned int stop) : input(channel){
     WAVMetaData metaData = channel->getInfo();
     if (metaData.getNumChannel() != 1)
-        throw std::invalid_argument("invalid channel count for WAVMute16_1");
+        throw WAVInvalidFormatException("invalid channel count for WAVMute16_1");
     if (metaData.getBlockAlign() != 2)
-        throw std::invalid_argument("invalid sample size for WAVMute16_1");
+        throw WAVInvalidFormatException("invalid sample size for WAVMute16_1");
+    if (metaData.getFormat() != 1)
+        throw WAVInvalidFormatException("invalid sound format for WAVMute16_1");
     start = start * metaData.getSampleRate();
     stop = stop * metaData.getSampleRate();
     start = std::max(start, (unsigned int)0);
@@ -27,7 +29,7 @@ WAVClip16_1::WAVClip16_1(WAVChannel *channel, unsigned int start, unsigned int s
     dataHeader.size = (stop - start) * metaData.getBlockAlign();
     info.createChunk(dataHeader);
     if (!info.isCorrect()) {
-        throw std::logic_error("WAVMetaData create exception");
+        throw WAVException("WAVMetaData create exception");
     }
     channel->skip(start);
     this->sampleCount = stop - start;

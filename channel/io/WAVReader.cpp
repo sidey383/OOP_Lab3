@@ -1,46 +1,37 @@
 #include "WAVReader.h"
-#include "stdexcept"
+#include "../../WAVexcepiont.h"
 
 
 WAVReader::WAVReader(std::ifstream &file) : file(file), pose(0) {
-    try {
-        FileHeader fileHeader{};
-        if (file.read((char *) &fileHeader, sizeof(FileHeader)).gcount() < sizeof(FileHeader)) {
-            throw std::invalid_argument("File too small");
-        }
-        data = WAVMetaData(fileHeader);
+    FileHeader fileHeader{};
+    if (file.read((char *) &fileHeader, sizeof(FileHeader)).gcount() < sizeof(FileHeader)) {
+        throw WAVFileSizeException("File too small, no file header");
+    }
+    data = WAVMetaData(fileHeader);
 
-        ChunkHeader chunkHeader{};
-        bool findData = false;
+    ChunkHeader chunkHeader{};
+    bool findData = false;
 
-        do {
-            if (file.read((char *) &chunkHeader, sizeof(ChunkHeader)).gcount() < sizeof(ChunkHeader)) {
-                throw std::invalid_argument("File too small");
-            }
-            FileChunk* chunk = data.createChunk(chunkHeader);
-            if (chunk == nullptr) {
-                findData = true;
-                break;
-            }
-            char* chunkData = chunk->getData();
-            if (file.read(chunkData, chunk->getDataSize()).gcount() < chunk->getDataSize()) {
-                throw std::invalid_argument("File too small");
-            }
-        } while (file.peek() != EOF);
+    do {
+        if (file.read((char *) &chunkHeader, sizeof(ChunkHeader)).gcount() < sizeof(ChunkHeader)) {
+            throw WAVFileSizeException("File too small, can't read file chunk");
+        }
+        FileChunk *chunk = data.createChunk(chunkHeader);
+        if (chunk == nullptr) {
+            findData = true;
+            break;
+        }
+        char *chunkData = chunk->getData();
+        if (file.read(chunkData, chunk->getDataSize()).gcount() < chunk->getDataSize()) {
+            throw WAVFileSizeException("File too small, can't read block data");
+        }
+    } while (file.peek() != EOF);
 
-        if (!findData) {
-            throw std::invalid_argument("No data in file");
-        }
-        if (!data.isCorrect()) {
-            throw std::invalid_argument("No fmt chunk in file");
-        }
-        if(isEnd()) {
-            throw std::exception();
-        }
-    } catch (std::invalid_argument &e) {
-        throw e;
-    } catch (...) {
-        throw std::exception();
+    if (!findData) {
+        throw WAVInvalidFormatException("No data in file");
+    }
+    if (!data.isCorrect()) {
+        throw WAVInvalidFormatException("Corrupted fmt chunk in file");
     }
 }
 
@@ -51,7 +42,7 @@ unsigned int WAVReader::getPose() {
 unsigned int WAVReader::readSample(void *buff, unsigned int count) {
     if (isEnd())
         return 0;
-    file.read((char*)buff, count * data.getBlockAlign());
+    file.read((char *) buff, count * data.getBlockAlign());
     if (!file.good()) {
         return 0;
     }
@@ -60,20 +51,20 @@ unsigned int WAVReader::readSample(void *buff, unsigned int count) {
     return read / data.getBlockAlign();
 }
 
-void WAVReader::skip(unsigned int  count) {
+void WAVReader::skip(unsigned int count) {
     file.seekg(count * data.getBlockAlign(), std::ios::cur);
     pose += count;
 }
 
 bool WAVReader::isEnd() {
-    if(!file.is_open())
+    if (!file.is_open())
         return true;
-    if(file.peek() == EOF)
+    if (file.peek() == EOF)
         return true;
     return false;
 }
 
-WAVMetaData& WAVReader::getInfo() {
+WAVMetaData &WAVReader::getInfo() {
     return data;
 }
 

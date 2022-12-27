@@ -14,4 +14,4 @@ add_executable(OOP_Lab3
         channel/editor/WAVMute.cpp
         channel/editor/WAVMixer.cpp
         SoundEditor.cpp
-        main.cpp ConfigParser.cpp)
+        main.cpp ConfigParser.cpp WAVexcepiont.cpp)

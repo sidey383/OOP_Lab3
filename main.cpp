@@ -1,4 +1,5 @@
 #include "ConfigParser.h"
+#include "WAVexcepiont.h"
 #include <cstring>
 #include <iostream>
 
@@ -13,6 +14,7 @@ int main(int argc, char** argv) {
             std::cout << "Help" << std::endl
             << "sound_processor [-h] [-c config.txt output.wav input1.wav [input2.wav …]]" << std::endl
             << ConfigParser::getConfigLore() << std::endl;
+            return 0;
         }
         if(strcmp(argv[i], "-c") == 0) {
             ++i;
@@ -32,15 +34,21 @@ int main(int argc, char** argv) {
         inputs.emplace_back(argv[i]);
     }
     if (!(hasOutput && hasConfig)) {
-        throw std::exception();
+        std::cerr<<"No output file or config";
+        return 1;
     }
     try {
         ConfigParser parser(config, output, inputs);
         parser.apply();
-    } catch (std::exception& e) {
+    } catch (WAVException& e) {
         std::cerr << e.what();
+        return e.getReturnCode();
+    } catch (std::exception& e){
+        std::cerr << e.what();
+        return 2;
     } catch (...) {
         std::cerr << "Unknown exception";
+        return 1;
     }
     return 0;
 }

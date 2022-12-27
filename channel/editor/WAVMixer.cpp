@@ -1,18 +1,18 @@
-#include <stdexcept>
 #include "WAVMixer.h"
+#include "../../WAVexcepiont.h"
 
 
 WAVMixer16_1::WAVMixer16_1(WAVChannel* base,WAVChannel *additional,unsigned int start) :
 baseInput (base), additionalInput(additional), info(base->getInfo()) {
     if (info.getNumChannel() != 1)
-        throw std::invalid_argument("invalid channel count for WAVMixer16_1");
+        throw WAVInvalidFormatException("invalid channel count for WAVMixer16_1");
     if (info.getBlockAlign() != 2)
-        throw std::invalid_argument("invalid sample size for WAVMixer16_1");
+        throw WAVInvalidFormatException("invalid sample size for WAVMixer16_1");
     if (info.getFormat() != 1)
-        throw std::invalid_argument("invalid sound format for WAVMixer16_1");
+        throw WAVInvalidFormatException("invalid sound format for WAVMixer16_1");
     WAVMetaData additionalMetadata = additional->getInfo();
     if (!info.isSimilar(additionalMetadata)) {
-        throw std::invalid_argument("Different sound formats");
+        throw WAVInvalidFormatException("Different mixed sounds format");
     }
     this->start = start * base->getInfo().getSampleRate();
 }

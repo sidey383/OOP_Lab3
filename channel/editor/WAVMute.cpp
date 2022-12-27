@@ -1,13 +1,15 @@
 #include "WAVMute.h"
-#include <stdexcept>
 #include <cstring>
+#include "../../WAVexcepiont.h"
 
 WAVMute16_1::WAVMute16_1(WAVChannel *channel, unsigned int start, unsigned int end) : inputChannel(channel),
                                                                                       info(channel->getInfo()) {
     if (info.getNumChannel() != 1)
-        throw std::invalid_argument("invalid channel count for WAVMute16_1");
+        throw WAVInvalidFormatException("invalid channel count for WAVMute16_1");
     if (info.getBlockAlign() != 2)
-        throw std::invalid_argument("invalid sample size for WAVMute16_1");
+        throw WAVInvalidFormatException("invalid sample size for WAVMute16_1");
+    if (info.getFormat() != 1)
+        throw WAVInvalidFormatException("invalid sound format for WAVMute16_1");
     this->start = start * info.getSampleRate();
     this->end = end * info.getSampleRate();
 }

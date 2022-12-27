@@ -7,7 +7,7 @@ class ConfigParser {
     std::ifstream config;
     std::vector<std::string> inputFiles;
     std::string outputFile;
-    SoundEditor* editor;
+    SoundEditor* editor = nullptr;
 
 public:
 

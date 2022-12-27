@@ -1,4 +1,5 @@
 #include "WAVMetaData.h"
+#include "../WAVexcepiont.h"
 
 bool WAVMetaData::compare4Str(const char *str1, const char *str2) {
     return str1[0] == str2[0] && str1[1] == str2[1]
@@ -23,10 +24,10 @@ ChunkType WAVMetaData::getType(ChunkHeader &header) {
 
 WAVMetaData::WAVMetaData(FileHeader &header) : fileHeader(header) {
     if (!compare4Str((char *) header.chunkId, riffStr)) {
-        throw std::invalid_argument("Wrong fmt id");
+        throw WAVUnsupportedFormatException("Wrong fmt id");
     }
     if (!compare4Str((char *) header.format, waveStr)) {
-        throw std::invalid_argument("Wrong file format id");
+        throw WAVUnsupportedFormatException("Wrong file format id");
     }
 }
 

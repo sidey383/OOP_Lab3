@@ -1,4 +1,5 @@
 #include "../WAVMetaData.h"
+#include "cstring"
 
 UnknownChunk::UnknownChunk(ChunkHeader header) {
     this->header = new ChunkHeader(header);

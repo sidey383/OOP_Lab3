@@ -73,5 +73,6 @@ std::string ConfigParser::getConfigLore() {
 }
 
 ConfigParser::~ConfigParser() {
-    delete editor;
+    if (editor != nullptr)
+        delete editor;
 }

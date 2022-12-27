@@ -1,13 +1,5 @@
 #pragma once
-
 #include <vector>
-#include <stdexcept>
-
-class NotSupportedException : public std::exception {
-    const char *what() const noexcept override {
-        return "This functionality is not supported";
-    }
-};
 
 struct FileHeader {
     char chunkId[4]; // "RIFF"
