@@ -13,8 +13,8 @@ int main(int argc, char** argv) {
     std::vector<std::string> inputs;
     for(int i = 1; i < argc; i++) {
         if(strcmp(argv[i], "-h") == 0) {
-            std::cout << "Help" << std::endl
-            << "sound_processor [-h] [-c config.txt output.wav input1.wav [input2.wav …]]" << std::endl
+            std::cout << "Help:" << std::endl
+            << "sound_processor [-h] [-c config.txt output.wav input1.wav [input2.wav …]]" << std::endl  << std::endl
             << ConfigParser::getConfigFormat() << std::endl
             << EditorFactory::getConfigCommands() << std::endl;
             return 0;

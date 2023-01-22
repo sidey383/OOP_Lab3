@@ -4,7 +4,7 @@
 ConfigParser::ConfigParser(std::ifstream& config, std::vector<std::string>& inputs) : inputs(inputs), config(config) {}
 
 std::string ConfigParser::getConfigFormat() {
-    return "Some config format lore";
+    return "Config can contain comment (line start from #)\nSound Action format:\ncommand <params>...\n";
 }
 
 SoundAction ConfigParser::nextAction() {

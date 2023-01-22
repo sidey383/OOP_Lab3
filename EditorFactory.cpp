@@ -75,7 +75,7 @@ WAVChannel *EditorFactory::getChannel(SoundAction &action, WAVChannel *oldChanne
 }
 
 std::string EditorFactory::getConfigCommands() {
-    return "mute <start> <stop>\nclip <start> <stop>\nmix $<fileNumber> <start>";
+    return "Sound Actions:\nmute <start> <stop>\nclip <start> <stop>\nmix $<fileNumber> <start>";
 }
 
 WAVWriter *EditorFactory::getWriter(WAVChannel *channel, std::string& file) {
