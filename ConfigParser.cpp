@@ -10,7 +10,7 @@ std::string ConfigParser::getConfigFormat() {
 SoundAction ConfigParser::nextAction() {
     std::vector<std::string> params;
     std::vector<std::string> files;
-    std::string name = "";
+    std::string name = "end";
     std::string string;
     while(std::getline(config, string)) {
         if (string[0] == '#')

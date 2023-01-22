@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
         EditorFactory factory;
         SoundAction wavAction{"read", {} ,inputs};
         WAVChannel* channel = nullptr;
-        while (!wavAction.name.empty()) {
+        while (wavAction.name != "end") {
             channel = factory.getChannel(wavAction, channel);
             wavAction = parser.nextAction();
         }
