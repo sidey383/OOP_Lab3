@@ -4,9 +4,9 @@
 
 class WAVWriterDefault : public WAVWriter {
     WAVChannel* channel;
-    std::ofstream& stream;
+    std::ofstream stream;
 public:
-    WAVWriterDefault(WAVChannel* channel, std::ofstream& stream);
+    WAVWriterDefault(WAVChannel* channel, std::string& stream);
 
     ~WAVWriterDefault();
 

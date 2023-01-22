@@ -6,11 +6,11 @@
 #include "io/WAVReader.h"
 #include "../WAVexcepiont.h"
 
-WAVChannel* getWAVReader(std::ifstream& out) noexcept(false) {
+WAVChannel* getWAVReader(std::string& out) noexcept(false) {
     return new WAVReader(out);
 }
 
-WAVWriter* getWAVWriter(WAVChannel* channel, std::ofstream& out) {
+WAVWriter* getWAVWriter(WAVChannel* channel, std::string& out) {
     return new WAVWriterDefault(channel, out);
 }
 

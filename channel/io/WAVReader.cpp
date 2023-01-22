@@ -2,7 +2,11 @@
 #include "../../WAVexcepiont.h"
 
 
-WAVReader::WAVReader(std::ifstream &file) : file(file), pose(0) {
+WAVReader::WAVReader(std::string& file_name) : pose(0), fileName(file_name) {
+    file = std::ifstream(file_name, std::ios::binary);
+    if (!file.is_open()) {
+        throw WAVException(file_name + " file not found");
+    }
     FileHeader fileHeader{};
     if (file.read((char *) &fileHeader, sizeof(FileHeader)).gcount() < sizeof(FileHeader)) {
         throw WAVFileSizeException("File too small, no file header");
@@ -43,9 +47,6 @@ unsigned int WAVReader::readSample(void *buff, unsigned int count) {
     if (isEnd())
         return 0;
     file.read((char *) buff, count * data.getBlockAlign());
-    if (!file.good()) {
-        return 0;
-    }
     unsigned int read = file.gcount();
     pose += read / data.getBlockAlign();
     return read / data.getBlockAlign();

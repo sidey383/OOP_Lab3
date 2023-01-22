@@ -34,7 +34,7 @@ public:
 
 };
 
-WAVChannel* getWAVReader(std::ifstream& out) noexcept(false);
+WAVChannel* getWAVReader(std::string& out) noexcept(false);
 
 class WAVWriter {
 public:
@@ -45,7 +45,7 @@ public:
 
 };
 
-WAVWriter* getWAVWriter(WAVChannel* channel, std::ofstream& out) noexcept(false);
+WAVWriter* getWAVWriter(WAVChannel* channel, std::string& out) noexcept(false);
 
 
 class WAVMute : public WAVChannel {};

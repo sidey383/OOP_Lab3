@@ -1,7 +1,9 @@
 #include "WAVWriter.h"
 #define BUFFER_SIZE 262144
 
-WAVWriterDefault::WAVWriterDefault(WAVChannel *channel, std::ofstream &stream) : channel(channel), stream(stream) {}
+WAVWriterDefault::WAVWriterDefault(WAVChannel *channel, std::string& str) : channel(channel) {
+    stream = std::ofstream(str, std::ios::binary);
+}
 
 void WAVWriterDefault::write() {
     WAVMetaData metaData = channel->getInfo();

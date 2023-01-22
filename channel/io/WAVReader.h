@@ -5,12 +5,13 @@
 class WAVReader : public WAVChannel {
 private:
     WAVMetaData data;
-    std::ifstream& file;
+    std::ifstream file;
+    std::string fileName;
     unsigned int pose;
 
 public:
 
-    explicit WAVReader(std::ifstream& file);
+    explicit WAVReader(std::string& file);
 
     ~WAVReader() override;
 
